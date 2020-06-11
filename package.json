@@ -39,7 +39,7 @@
     "eslint-plugin-nodeca": ">=1.0.0",
     "istanbul": "*",
     "lodash": ">=4.17.15",
-    "markdown-it": ">=9.0.1",
+    "markdown-it": ">=11.0.0",
     "markdown-it-testgen": "~0.1.0",
     "mocha": ">=5.2.0",
     "request": ">=2.88.0",

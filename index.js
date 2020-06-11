@@ -8,6 +8,8 @@ var REFERENCE_START = 'reference?';
 var BOOKMARK_START = 'bookmark?';
 var synapseRE = new RegExp('^syn([0-9]+[.]?[0-9]*)+');
 var urlWithoutProtocolRE = new RegExp('^([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\w \\.-]*)*\\/?.*$');
+// match url that starts with a leading slash / and is followed by an alphanumeric character
+var internalURL = new RegExp(/^\/\w/);
 var doiRE = new RegExp('^doi:10[.]{1}[0-9]+[/]{1}[a-zA-Z0-9_.]+$');
 var gridLayoutColumnParamRE = new RegExp('^\\s*(width[=]{1})?\\s*(.*)[}]{1}\\s*$');
 var navTextParamRE = new RegExp('^\\s*(text[=]{1}["]{1})?\\s*(.*)["]{1}[}]{1}\\s*$');
@@ -75,6 +77,14 @@ function isSupportedUsernameCharacter(code) {
 function startsWith(src, searchString, position) {
   position = position || 0;
   return src.substr(position, searchString.length) === searchString;
+}
+
+function isInternalLink(src) {
+  console.log('src = ', src);
+  if (src.length > 2) {
+    return internalURL.test(src.substr(0, 2));
+  }
+  return false;
 }
 
 
@@ -271,9 +281,11 @@ module.exports.init_markdown_it = function (md, markdownitSub, markdownitSup,
       // If you are sure other plugins can't add `target` - drop check below
       var aIndex = tokens[idx].attrIndex('target');
       var hrefIndex = tokens[idx].attrIndex('href');
+      var isInternalSynapseLink = startsWith(tokens[idx].attrs[hrefIndex][1], '#!');
+      var isInternalPageLink = isInternalLink(tokens[idx].attrs[hrefIndex][1]);
       if (aIndex < 0) {
-        if (hrefIndex < 0
-          || !startsWith(tokens[idx].attrs[hrefIndex][1], '#!')) {
+        // if it has no href OR it is neither a synapse link or internal page link
+        if (hrefIndex < 0 || !(isInternalPageLink || isInternalSynapseLink)) {
           tokens[idx].attrPush([ 'target', '_blank' ]); // add new attribute
           tokens[idx].attrPush([ 'ref', 'noopener noreferrer' ]); // add new attribute
         }
